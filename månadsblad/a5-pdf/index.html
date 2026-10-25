@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    <title>Print</title>
+    <style>
+        .ff-1 {
+            font-family: 'Open Sans';
+        }
+
+        .no-pointer {
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="mt4 ff-1 fw3">
+        <div v-show="!has_uploaded">
+            <form enctype="multipart/form-data" action=" upload.php" method="POST" target="frame">
+                <label class="dt f4 center mb4 ba b--black-20 bg-blue pa2 br2 white hover-bg-dark-blue">Välj PDF
+                    <input name="file" class="dn" type="file" accept="application/pdf" onchange="this.form.submit(); app.upload()"></label>
+            </form>
+        </div>
+        <div v-show="has_uploaded">
+            <p class="mv3 f3 tc">Välj pappersstorlek</p>
+            <div class="center mw8 overflow-hidden">
+                <iframe class="bn w-100 vh-75 pv4 overflow-hidden" name="frame" id="frame"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                has_uploaded: false,
+            }
+        },
+        methods: {
+            upload() {
+                this.has_uploaded = true
+            }
+        }
+    })
+</script>
+
+</html>

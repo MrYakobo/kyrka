@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" />
+    <script src="https://unpkg.com/axios@0.19.0/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css?family=Playfair+Display&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=DM+Serif+Display&display=swap" rel="stylesheet">
+
+    <title>Månadsbladet</title>
+    <style>
+        .api>p {
+            text-align: center;
+            font-size: 3.5rem;
+            margin: 1.5rem;
+
+            font-family: 'Roboto';
+            font-weight: 100;
+            color: #a30c0c;
+        }
+
+        .ff-1 {
+            font-family: 'Playfair Display'
+        }
+
+        .ff-2 {
+            /* font-family: 'Lora'; */
+            /* font-family: 'Noto Sans'; */
+            font-family: 'Roboto';
+            font-weight: 300;
+        }
+
+        .ff-3 {
+            font-family: 'Fredericka The Great'
+        }
+
+        .ff-4 {
+            font-family: 'DM Serif Display';
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            /* border: 3px solid #ff00ff; */
+        }
+
+        .h5-5 {
+            height: 32rem;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                /* margin: 15px; */
+                margin: 0px
+            }
+
+            html,
+            body {
+                background: #fff;
+                width: 210mm;
+                height: 297mm;
+                margin: 0px;
+                overflow: hidden;
+            }
+
+            .hidden-print,
+            .ql-toolbar {
+                display: none
+            }
+
+            #editor *,
+            #editor {
+                border: none !important
+            }
+        }
+
+
+        .fixed-center {
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+        }
+
+        .close {
+            position: absolute;
+            right: 32px;
+            top: 32px;
+            width: 32px;
+            height: 32px;
+            opacity: 0.3;
+        }
+
+        .close:hover {
+            opacity: 1;
+        }
+
+        .close:before,
+        .close:after {
+            position: absolute;
+            left: 15px;
+            content: ' ';
+            height: 33px;
+            width: 2px;
+            background-color: #333;
+        }
+
+        .close:before {
+            transform: rotate(45deg);
+        }
+
+        .close:after {
+            transform: rotate(-45deg);
+        }
+
+        .api tr {
+            cursor: pointer;
+            transition-duration: .05s;
+        }
+
+        .api tr:hover {
+            color: #fff;
+            background: #ec4848;
+        }
+
+        .api>table {
+            border-collapse: collapse;
+            /* border-collapse: separate; */
+            /* border-spacing: 0px; */
+        }
+
+
+        .api tr.lastinweek+tr td {
+            border-top: 1px solid rgba(0, 0, 0, .4);
+            padding-top: 5px;
+        }
+
+        .api tr.lastinweek td {
+            padding-bottom: 5px;
+        }
+
+        .api td {
+            padding-right: 5px
+        }
+
+        .tr-active {
+            color: #fff;
+            background: #a30c0c !important;
+        }
+
+        .x {
+            position: relative;
+            width: 23px;
+            height: 23px;
+            border: 2px solid #b9b9b9;
+            background-color: #919191;
+            border-radius: 50%;
+        }
+
+        .x::before,
+        .x::after {
+            position: absolute;
+            top: 9px;
+            left: 4.6px;
+            width: 10px;
+            height: 3px;
+            content: "";
+            background-color: #eef5df;
+            display: none;
+        }
+
+        .x::before {
+            transform: rotate(-45deg);
+        }
+
+        .x::after {
+            transform: rotate(45deg);
+        }
+
+        .x:hover {
+            cursor: pointer;
+        }
+
+        .x:hover::before,
+        .x:hover::after {
+            display: block;
+        }
+
+        .ql-toolbar.ql-snow * {
+            color: #fff !important;
+            stroke: #fff;
+        }
+
+        .mt-auto {
+            margin-top: auto;
+        }
+
+        .mb-auto {
+            margin-bottom: auto;
+        }
+
+        .h-logo {
+            height: 1.6cm;
+        }
+    </style>
+</head>
+
+<body class=" bg-near-white">
+    <div id="app" class="ph3 tc mt2 ff-1 flex justify-center">
+        <!-- settings -->
+        <div class="hidden-print center dt bg-white shadow-1 pv3 ph4 br2 ">
+            <!-- <h1 class="dt f1 fw1 bb center ph3 b--black-20">Inställningar</h1> -->
+            <div class="">
+                <!-- <div class=" br b--black-20 pr3"> -->
+                <p class="f2 fw1 mv3">Månad</p>
+                <p class="f4">
+                    <select v-model="offset">
+                        <option v-for="i in [0,1,2,3,4,5,6,7,8,9,10,11,12]" :value="i">{{offsetted_month(i)}}</option>
+                    </select>
+                </p>
+                <label class="f4">Två månader? <input type="checkbox" v-model="multi_month"></label>
+                <br>
+                <br>
+                <label class="f4">Månadens böneämne? <input type="checkbox" v-model="show_prayer"></label>
+                <div class="mv3 center mw6 bt b--black-20"></div>
+                <button class="f4 pa2" @click="randomize_images">Slumpa bilder</button>
+                <p class="f3">Textstorlek</p>
+                <input class="v-mid mr1" type="range" min="50" max="150" step="5" v-model.number="chosen_fontsize">
+                <p> {{chosen_fontsize}}%</p>
+            </div>
+
+            <div class="mv3 center mw6 bt b--black-20"></div>
+            <div class="mt3 ff-2 dt center f4"><a class="no-underline underline-hover blue"
+                    href="https://pingst.lind.sk/pdf/" target="_blank">Skriv ut på A5 <img src="external-link.svg"
+                        class="w1"></a></div>
+            <div class="mv3 center mw6 bt b--black-20"></div>
+            <div class="ff-2 dt center f4 br2 ba b--black-20 pa3 bg-near-white near-black">Tryck Ctrl+P för att skriva
+                ut.</div>
+        </div>
+        <!-- /settings -->
+        <!-- modal bg -->
+        <div v-if="idx != -1" @click="idx=-1" class="bg-black-50 fixed w-100 h-100 top-0 left-0 z-1"></div>
+        <!-- /modal bg -->
+
+        <!-- modal -->
+        <div v-if="idx != -1" class="mw8 z-2 fixed top-1 left-1 bg-white ba bw1 b--black-20 shadow-4 pt2 ph3 pb4 br3">
+            <div class="close pointer" @click="idx=-1"></div>
+            <p class="f2">Välj från galleriet</p>
+            <div class="flex">
+                <div class="mw6 flex flex-wrap center items-center justify-center h5-5 overflow-auto"
+                    id="all_images_container">
+                    <div v-for="(img, imgidx) in thumbs" @click="setimg(imgidx)"
+                        :class="['ma1 w4 h5 grow shadow-hover cover', align, {'ba bw3 b--blue': images[idx] == img}]"
+                        :style="{'background-image': 'url(' + img + ')'}"></div>
+                </div>
+                <div>
+                    <div class="mt1">
+                        <button v-for="(a, ai) in alignments" :class="['f4 pa2', {'blue': a==align}]"
+                            @click="set_alignment(a)">{{['Vänster', 'Centrerad', 'Höger'][ai]}}</button>
+                        <br>
+                        <br>
+                        <label class="f4">Animera justeringen? <input type="checkbox"
+                                v-model="animate_alignment"></label>
+                    </div>
+                    <div class=" ba b--black-30 w5 center mt4 mb2"></div>
+                    <label>
+                        <input class="dn" @change="e => file_upload(e,idx)" type="file" accept="image/png, image/jpeg">
+                        <p class="f3 bg-blue hover-bg-dark-blue white dt pv2 ph4 center br3 ff-2">Från dator</p>
+                    </label>
+                    <div v-if="custom_upload(idx)">
+                        <div @click="images.splice(idx, 1, images[idx]); idx = -1"
+                            :class="['ma1 w4 h5 grow shadow-hover cover', align, {'ba bw3 b--blue': custom_upload(idx)}]"
+                            :style="{'background-image': 'url(' + images[idx] + ')'}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- main -->
+        <div v-for="page_idx in n_pages" class="bg-white ph2 mb5 center page cover bg-center"
+            :style="[bg_src, multi_pages_style]">
+            <!-- <span class="ff-3">Välkommen till</span><img src="logo.svg" class="h3"> -->
+            <div class="flex flex-column justify-around items-center center h-100">
+                <div class="inline-flex items-center w-100 justify-between">
+                    <div class="">
+                        <!-- first -->
+                        <div v-for="(v,i) in firstimages">
+                            <label @click="show_modal(i)">
+                                <div :class="['grow shadow-hover mv2 w4 h5 cover', bgstate[i], {'ba': !v}]"
+                                    :style="{ 'background-image': 'url(' + v + ')' }"></div>
+                            </label>
+                        </div>
+                        <div class="dt h-logo"></div>
+                    </div>
+                    <div class="near-black ph2 tl">
+                        <div v-if="api" class="pa3 ff-2" :style="currfontsize" v-html="api" @click="table_click"></div>
+                        <div v-else class="f2 w-100">Laddar {{offsetted_month(offset)}}...</div>
+                    </div>
+                    <div class="">
+                        <div v-for="(v,i) in lastimages">
+                            <label @click="show_modal(i+images.length/2)">
+                                <div :class="['grow shadow-hover mv2 w4 h5 cover', bgstate[i+images.length/2], {'ba': !v}]"
+                                    :style="{ 'background-image': 'url(' + v + ')' }"></div>
+                            </label>
+                        </div>
+                        <img src="logo.svg" class="dt w4">
+                    </div>
+                </div>
+                <!-- /main -->
+                <!-- footer -->
+                <div class="mb-auto mt2 f6 ff-2 ph4 bt bb b--black-10 pt3 pb2 relative">
+                    <div class="flex justify-start">
+                        <div class="tl dt">
+                            <div class="mb2"><img src="call-answer.svg" class="h1 v-base mr1"> <span
+                                    class="v-top">Expedition: 0300-719 91</span>
+                                <p class="tc mt2 f7">(Tisdag & Torsdag 10-12)</p>
+                            </div>
+                        </div>
+                        <div class="ml3 flex justify-center">
+                            <div class="mr2"><img src=" close-envelope.svg" class="h1 v-base"></div>
+                            <div class="tl">
+                                <div class="mb2">förnamn@pingstkungsbacka.se</div>
+                                <div class="f6">Robin Eklind</div>
+                                <div class="f6">Sara Eklind</div>
+                                <div class="f6">Linus Bokerud</div>
+                                <div class="f6">Roland Johansson</div>
+                                <div class="f6">Stefan Börjesson</div>
+                            </div>
+                        </div>
+                        <div class="ml4 flex justify-center">
+                            <div class="mr3"><img src="swish_logo_primary_RGB.svg" class="h2 v-base"></div>
+                            <div class="tl">
+                                <div class="">Swish: 123 338 57 21</div>
+                                <div>Bankgiro: 783-6430</div>
+                                <div class="mt2">pingstkungsbacka.se</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-auto mb4 w-100 ph3 flex justify-between" v-if="show_prayer">
+                    <!-- bibelord -->
+                    <div class="dit ml0 tl ph3 mb1 ">
+                        <p class="ff-1 f2 fw1 mb1">Månadens böneämne</p>
+                        <div class="mt1">
+                            <div class="dit mt2 ff-1 mw6 f5 i" contenteditable="plaintext-only">{{random_prayer.prayer}}
+                            </div>
+                            <div class="dit f3 ff-4 mt2 mb2" contenteditable="plaintext-only">{{random_prayer.phrase}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <img v-if="!show_prayer" src="logo.svg" class="dt mb4 ml-auto mr4 mt1 h-logo v-btm"> -->
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var url = 'https://pingst.lind.sk'
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                fontsizes: ['f4', 'f5', 'f6'],
+                fontsizes_labels: ['stor', 'mellan', 'liten'],
+                chosen_fontsize: 100,
+                prayers: [{
+                        prayer: "Vi ber om Guds beskydd över vårt land och kommun mot falskhet, ondska och våld!",
+                        phrase: "Hosea 4:1-4"
+                    },
+                    {
+                        prayer: `Herre hjälp oss att följa din uppmaning: "Sök först Guds rike och hans rättfärdighet, så skall ni få allt det andra också."`,
+                        phrase: "Matt 6:33"
+                    },
+                    {
+                        prayer: `Vi ber för sommarens vädersituation, om lagom med regn. Vi ber även om beskydd från bränder.`,
+                        phrase: "Hos 6:3, Jak 5:13, 2 Krön 7:13"
+                    },
+                    {
+                        prayer: `Vi ber för äldre och äldreomsorgen i kommunen att de ska uppleva god omsorg och vård enligt behov och önskemål. Vi ber för var och en som arbetar där.`,
+                        phrase: `5 Mos 5:16, Ef 6:2-3`
+                    },
+                    {
+                        prayer: `Vi ber om en förändrad attityd hos migrationsverket samt frimodighet, kraft och vishet för alla konvertiter och nykristna.`,
+                        phrase: `5 Mos 24:17`
+                    }
+                ],
+                show_prayer: false,
+                bg_color: '#ffffff',
+                alignments: ['bg-left', 'bg-center', 'bg-right'],
+                animate_alignment: false,
+                offset: '',
+                all_images: [],
+                idx: -1,
+                images: new Array(6),
+                bgstate: new Array(6),
+                align: 'bg-center',
+                bg_custom: '',
+                debug: false,
+                skip_watch: true,
+                multi_month: false,
+                api: '',
+                n_pages: 1
+            }
+        },
+        mounted() {
+            this.bgstate.fill('bg-center')
+            axios.get(`${url}/images`).then(t => {
+                this.all_images = t.data
+                this.all_images = this.all_images.map(t => `${url}/${t}`)
+
+                this.randomize_images()
+            }).catch(e => {
+                console.log(e)
+            })
+
+            this.offset = 0
+
+            document.title = this.offsetted_month(this.offset)
+
+            this.load_state(this.offset, () => {})
+            this.$nextTick(() => {
+                this.skip_watch = false
+            })
+
+            setInterval(() => {
+                if (this.animate_alignment) {
+                    this.set_alignment(this.alignments[(this.alignments.indexOf(this.align) + 1) % this
+                        .alignments.length])
+                }
+            }, 1000);
+        },
+        computed: {
+            currfontsize() {
+                return {
+                    'font-size': this.chosen_fontsize / 100 + 'rem'
+                }
+            },
+            multi_pages_style() {
+                if (this.n_pages == 1)
+                    return ''
+                if (this.n_pages == 2)
+                    return 'transform: rotate(-90deg) scale(0.5)'
+                if (this.n_pages == 4)
+                    return 'scale(0.25)'
+            },
+            random_prayer() {
+                return this.prayers[Math.floor(Math.random() * this.prayers.length)]
+            },
+            thumbs() {
+                return this.all_images
+                // return this.all_images.map(t => `small_${t}`)
+            },
+            firstimages() {
+                return this.images.filter((s, i) => i < this.images.length / 2)
+            },
+            lastimages() {
+                return this.images.filter((s, i) => i >= this.images.length / 2)
+            },
+            bg_src() {
+                if (this.bg_custom == '')
+                    // return {
+                    //     'background-image': 'url(\'https://source.unsplash.com/1000x1000/weekly?' + this.bg_search + '\')'
+                    // }
+                    return 'background: ' + this.bg_color
+
+                return {
+                    'background-image': 'url(' + this.bg_custom + ')'
+                }
+            }
+        },
+        watch: {
+            multi_month(n, o) {
+                this.api = ''
+                this.load_state(n)
+            },
+            offset(n, o) {
+                if (this.skip_watch) return
+                this.api = ''
+                this.load_state(n, () => {})
+
+                document.title = this.offsetted_month(n)
+            }
+        },
+        methods: {
+            show_modal(i) {
+                this.idx = i
+                var t = this.all_images.indexOf(this.images[i])
+                if (t != -1) {
+                    this.$nextTick(() => {
+                        var els = this.$el.querySelectorAll("#all_images_container > div")
+                        console.log(t)
+
+                        els[t].scrollIntoView({
+                            behavior: "auto",
+                            block: "start",
+                            inline: "start"
+                        })
+                    })
+                }
+            },
+            custom_upload(idx) {
+                return idx == -1 ? false : /^data:/.test(this.images[idx])
+            },
+            load_state(n, cb = () => {}) {
+                var arr = (this.multi_month ? [0, 1] : [0]).map(t => axios.get(
+                    `${url}/api?offset=${n+t}&weeknum`))
+
+                err = off =>
+                    `<p class='f3'>Kunde inte ladda ${this.offsetted_month(off)}. Det kan bero på att arbetsbladet för det året inte är skapat än.</p>`
+
+                axios.all(arr).then(([a, b]) => {
+                    var err_arr = [a.data == '', b == null ? false : b.data == '']
+                    var err_string = err_arr.map((t, i) => t ? err(t + i) : '').reduce((acc, t) => acc +
+                        t)
+
+                    if (err_string != '') {
+                        this.api = err_string
+                        return
+                    }
+
+                    var t = a.data + (b == null ? '' : b.data)
+                    this.api = t
+                    cb()
+                }).catch(e => {
+                    console.log(e)
+                })
+            },
+            setimg(imgidx) {
+                this.images.splice(this.idx, 1, this.all_images[imgidx])
+                this.idx = -1
+            },
+            offsetted_month(i) {
+                var months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti',
+                    'September', 'Oktober', 'November', 'December'
+                ]
+                var o = new Date()
+                var newDate = new Date(o.setMonth(o.getMonth() + i))
+                var idx = newDate.getMonth()
+                var s = months[idx] + (this.multi_month ? ' och ' + months[idx + 1] : '') + ' ' + newDate
+                    .getFullYear()
+                return s
+            },
+            bg_change(e) {
+                var files = e.target.files || e.dataTransfer.files
+                if (!files.length)
+                    return
+
+                var vm = this
+                this.read_img(files[0], ev => {
+                    vm.bg = ev.target.result
+                })
+            },
+            read_img(file, func) {
+                var image = new Image()
+                var reader = new FileReader()
+
+                reader.onload = ev => {
+                    func(ev)
+                }
+                reader.readAsDataURL(file)
+            },
+            imgdisp(file, i) {
+                var vm = this
+                this.read_img(file, ev => {
+                    vm.images.splice(i, 1, ev.target.result)
+                })
+            },
+            file_upload(e, i) {
+                var files = e.target.files || e.dataTransfer.files
+                if (!files.length)
+                    return
+                this.imgdisp(files[0], i)
+                // this.idx = -1
+            },
+            bg_upload(e) {
+                var files = e.target.files || e.dataTransfer.files
+                if (!files.length)
+                    return
+                this.read_img(files[0], ev => {
+                    this.bg_custom = ev.target.result
+                })
+            },
+            set_alignment(s) {
+                this.align = s
+                this.bgstate.splice(this.idx, 1, s)
+            },
+            table_click(e) {
+                var el = e.target
+                if (el.tagName != 'TD')
+                    return
+
+                el.parentNode.classList.toggle('tr-active')
+            },
+            randomize_images() {
+                for (var i = 0; i < this.images.length; i++) {
+                    this.images.splice(i, 1, this.all_images[Math.floor(Math.random() * this.all_images
+                        .length)])
+                }
+            }
+        }
+    })
+</script>
+
+</html>

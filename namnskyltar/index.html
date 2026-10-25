@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:100,100i,400,400i,700,700i|Noto+Sans:700" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css" rel="stylesheet">
+    <title>Namnskyltar</title>
+</head>
+<style>
+    @font-face {
+        font-family: 'SouthernAire';
+        src: url('SouthernAire.woff2');
+    }
+
+    body {
+        display: block;
+        background: white;
+        font-family: 'Open Sans'
+    }
+
+    @media print {
+
+        html,
+        body {
+            margin: 0;
+            box-shadow: 0;
+            width: 21cm;
+            height: 29.7cm;
+        }
+
+        .hideprint {
+            display: none
+        }
+    }
+
+    .sign {
+        font-size: 28px;
+        /* border: 1px solid; */
+        /* width: 8.5cm;
+        height: 5.5cm; */
+        width: 9.5cm;
+        height: 6.0cm;
+        display: inline-block;
+        background-image: url("bg.png");
+        position: relative;
+        /* margin: .5mm; */
+        background: #fff;
+        margin: 0
+    }
+
+    .logo {
+        height: 15%;
+        position: absolute;
+        bottom: .25cm;
+        right: 0.5cm;
+        z-index: 1
+    }
+
+    .bg {
+        height: 3.5cm;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+    }
+
+    .name {
+        color: rgb(214, 43, 43);
+        font-weight: bold;
+        font-family: 'IBM Plex Sans';
+        font-size: 1.3em;
+        position: relative;
+        top: 0.4cm;
+        z-index: 1;
+    }
+
+    .host {
+        position: absolute;
+        font-family: 'SouthernAire';
+        color: #000;
+        top: 1.5cm;
+        right: 1cm;
+        font-size: 3em;
+    }
+
+    .input {
+        font-weight: 300;
+    }
+</style>
+
+<body class="hero is-white is-bold is-fullheight has-text-centered">
+    <div class="hideprint ">
+        <div class="hero-head">
+            <h1 class="title is-1" style="margin-top: 50px">Namnskyltar</h1>
+
+        </div>
+        <div class="hero-body">
+            <div class="container">
+                <div class="field is-horizontal">
+                    <div class="field-label"><label class="label has-text-grey-light">Namn (kommasepererade)</label></div>
+                    <div class="field-body">
+                        <div class="field">
+                            <div class="control">
+                                <input type="text" class="input is-large is-rounded" id="names" value="" placeholder="Albert, Bertil, Sigge">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <br>
+                <div class="is-size-4">
+                    <span class="icon has-text-info"><i class="fa fa-info-circle "></i></span>
+                    <span class="has-text-weight-light">Tryck Ctrl+P för att skriva ut.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="target" class="" style="margin:0"></div>
+</body>
+<script>
+    if (location.search == '?n=1') {
+        document.getElementById("names").value = "Elisabeth,Anette,Sebastian,Anna-Maria,Aline,Monica,UllaCarin,Gori"
+    }
+    document.querySelectorAll('input').forEach(t => t.addEventListener('input', () => {
+        generate()
+    }))
+    generate()
+
+    function gen(name) {
+        return `
+        <div class="sign ">
+            <img src="logo.svg" class="logo">
+            <img src="bg.jpg" class="bg">
+            <span class="name">${name}</span>
+            <span class="host">Värd</span>
+        </div>`
+    }
+
+    function generate() {
+        var names = document.getElementById("names").value.split(",")
+        document.getElementById("target").innerHTML = names.reduce((acc, t) => t == '' ? acc : acc + gen(t.trim()), '')
+    }
+</script>
+
+</html>

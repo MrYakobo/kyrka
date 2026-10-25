@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bönelappar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <style>
+        .container-1 {
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 13px;
+        }
+
+        .prayer {
+            background: #fff;
+            border: 1px solid;
+            flex: auto;
+            flex-grow: 0;
+            position: relative;
+            width: 376px;
+            margin: auto;
+            margin: 0px 3px;
+            height: 132px;
+            overflow: hidden
+        }
+
+        .prayer>* {
+            position: absolute;
+            padding: 1rem;
+        }
+
+        .prayer>.title {
+            font-weight: 600;
+            font-size: 1.5em;
+            text-transform: uppercase;
+            top: 0;
+            left: 0;
+        }
+
+        .prayer>.month {
+            font-weight: 600;
+            top: 0;
+            right: 0;
+            font-size: 1.1em;
+        }
+
+        .prayer>.text {
+            font-family: 'Times New Roman', 'Open Sans';
+            font-size: 1.2em;
+            font-style: italic;
+            left: 0;
+            bottom: 0;
+            max-height: 110px;
+            pointer-events: none;
+        }
+
+        body {
+            font-family: 'Open Sans'
+        }
+
+        .input,
+        .textarea {
+            font-weight: 300
+        }
+
+        html {
+            background: white;
+        }
+
+        #container {
+            width: 210mm;
+            height: 297mm;
+            margin: auto;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 15px;
+                /* margin: 0px */
+            }
+
+            html,
+            body {
+                background: #fff;
+                width: 210mm;
+                height: 297mm;
+                margin: auto;
+            }
+
+            .hidden-print {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero is-light has-text-centered hidden-print">
+        <div class="hero-head">
+            <h1 class="title is-1" style="margin-top: 50px">Bönelappar</h1>
+        </div>
+        <div class="hero-body">
+            <div class="container">
+                <div class="field is-horizontal">
+                    <div class="field-label"><label class="label has-text-grey-light">Månad och år</label></div>
+                    <div class="field-body">
+                        <div class="field">
+                            <div class="control">
+                                <input class="input is-large " type="text" id="month">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="field is-horizontal">
+                    <div class="field-label"><label class="label has-text-grey-light">Bönämne</label></div>
+                    <div class="field-body">
+                        <div class="field">
+                            <div class="control">
+                                <textarea class="textarea is-large" rows="5" id="text">Vi ber om sann frid och fred i vårt samhälle och vårt land, och att Guds vilja får ske i höstens val.</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field is-horizontal">
+                    <div class="field-label"><label class="label has-text-grey-light">Textstorlek</label></div>
+                    <div class="field-body">
+                        <div class="field">
+                            <div class="control">
+                                <input id="slider" style="width: 500px;" step="1" min="10" max="400" value="120" type="range">
+                                <button class="button is-info" onclick="resetfont()">Återställ textstorlek</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="notification is-size-4">
+                    <span class="icon has-text-info"><i class="fa fa-info-circle "></i></span>
+                    <span>Tryck Ctrl+P för att skriva ut.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div id="container" class="container-1">
+
+    </div>
+</body>
+<script>
+    function resetfont() {
+        document.getElementById('slider').value = 120
+        render()
+    }
+    document.querySelectorAll('input,textarea').forEach(t => t.addEventListener('input', () => {
+        render()
+    }))
+    var d = new Date()
+    var year = d.getFullYear()
+    var month = d.getUTCMonth()
+
+    var months = ["Jan", "Feb", "Mars", "April", "Maj", "Juni", "Juli", "Aug", "Sept", "Okt", "Nov", "Dec"]
+
+    document.getElementById("month").value = months[month] + " " + (year - 2000).toString()
+
+    function render() {
+        var fontsize = parseInt(document.getElementById('slider').value) / 100 + "em"
+        var html = `<div class="prayer">
+            <h1 class="title">Böneämne</h1>
+            <h2 class="month">${document.getElementById("month").value}</h2>
+            <p class="text" id="slider" style="font-size: ${fontsize}">${document.getElementById("text").value.replace(/\n/g, '<br>')}</p>
+        </div>`.repeat(8 * 2)
+
+        document.getElementById("container").innerHTML = html
+    }
+    render()
+</script>
+
+</html>
